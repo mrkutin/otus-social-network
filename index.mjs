@@ -1,7 +1,7 @@
 const PORT = 3000
 
 import express from 'express'
-import {create, authenticate, get} from "./users.mjs";
+import users from "./users.mjs";
 
 const app = express()
 app.use(express.json())
@@ -15,7 +15,7 @@ app.post('/user/register', async (req, res) => {
         return res.status(400).send('Невалидные данные')
     }
     try {
-        const user_id = await create(req.body)
+        const user_id = await users.create(req.body)
         res.send({user_id})
     } catch (err) {
         console.log(err.message)
@@ -28,7 +28,7 @@ app.post('/login', async (req, res) => {
         return res.status(400).send('Невалидные данные')
     }
     try {
-        const token = await authenticate(req.body.id, req.body.password)
+        const token = await users.authenticate(req.body.id, req.body.password)
         if(token){
             return res.send({token})
         }
@@ -44,11 +44,24 @@ app.get('/user/get/:id', async (req, res) => {
         return res.status(400).send('Невалидные данные')
     }
     try {
-        const user = await get(req.params.id)
+        const user = await users.get(req.params.id)
         if(user){
-            return res.send({user})
+            return res.send(user)
         }
         res.status(404).send('Анкета не найдена')
+    } catch (err) {
+        console.log(err.message)
+        return res.status(500).send('Ошибка сервера')
+    }
+})
+
+app.get('/user/search', async (req, res) => {
+    if (!req.query.first_name && !req.query.second_name) {
+        return res.status(400).send('Невалидные данные')
+    }
+    try {
+        const result = await users.search(req.query.first_name, req.query.second_name)
+        return res.send(result)
     } catch (err) {
         console.log(err.message)
         return res.status(500).send('Ошибка сервера')

@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise'
-import { v4 as uuid } from 'uuid'
+import {v4 as uuid} from 'uuid'
 
 const config = {
     host: process.env.MYSQL_HOST || 'localhost',
@@ -17,7 +17,7 @@ try {
 }
 
 const create = async user => {
-    if(!connection){
+    if (!connection) {
         throw new Error('База данных не доступна')
     }
     const user_id = uuid()
@@ -27,13 +27,13 @@ const create = async user => {
 }
 
 const authenticate = async (id, password) => {
-    if(!connection){
-        throw new Error('База данных не доступна')
+    if (!connection) {
+        throw new Error('База данных недоступна')
     }
     const statement = `SELECT id FROM users WHERE id = '${id}' AND password = SHA2('${password}', 256);`
     const result = await connection.execute(statement)
 
-    if(result?.[0]?.[0]){
+    if (result?.[0]?.[0]) {
         return uuid()
     }
 
@@ -41,8 +41,8 @@ const authenticate = async (id, password) => {
 }
 
 const get = async id => {
-    if(!connection){
-        throw new Error('База данных не доступна')
+    if (!connection) {
+        throw new Error('База данных недоступна')
     }
     const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE id = '${id}';`
     const result = await connection.execute(statement)
@@ -50,4 +50,22 @@ const get = async id => {
     return result?.[0]?.[0] || null
 }
 
-export {create, authenticate, get}
+const search = async (first_name, second_name) => {
+    if (!connection) {
+        throw new Error('База данных недоступна')
+    }
+
+    const like_clauses = []
+    if(first_name) {
+        like_clauses.push(`first_name LIKE '${first_name}%'`)
+    }
+    if(second_name) {
+        like_clauses.push(`second_name LIKE '${second_name}%'`)
+    }
+
+    const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE ${like_clauses.join(' AND ')};`
+    const result = await connection.execute(statement)
+
+    return result?.[0] || []
+}
+export default {create, authenticate, get, search}
