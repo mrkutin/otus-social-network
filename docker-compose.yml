@@ -12,7 +12,7 @@ services:
       - 3306:3306
     volumes:
       - ./data/init.sql:/docker-entrypoint-initdb.d/1-init.sql
-      - ./data/people-one.sql:/docker-entrypoint-initdb.d/2-people-one.sql
+      - ./data/people-sample.sql:/docker-entrypoint-initdb.d/2-people-sample.sql
       - ./data/people-two.sql:/docker-entrypoint-initdb.d/3-people-two.sql
   webserver:
     depends_on:
