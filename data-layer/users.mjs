@@ -16,25 +16,36 @@ try {
     console.error('error connecting: ' + err.stack)
 }
 
+const findByToken = async token => {
+    if (!connection) {
+        throw new Error('База данных не доступна')
+    }
+    const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE EXISTS (SELECT 1 FROM tokens WHERE tokens.id = '${token}' AND users.id = tokens.user_id);`
+    const result = await connection.execute(statement)
+    return result?.[0]?.[0] || null
+}
+
 const create = async user => {
     if (!connection) {
         throw new Error('База данных не доступна')
     }
     const user_id = uuid()
-    const statement = `INSERT INTO users (id, password, first_name, second_name) VALUES('${user_id}', SHA2('${user.password}', 256)   , '${user.first_name || ''}', '${user.second_name || ''}');`
+    const statement = `INSERT INTO users (id, password, first_name, second_name) VALUES('${user_id}', SHA2('${user.password}', 256), '${user.first_name || ''}', '${user.second_name || ''}');`
     await connection.execute(statement)
     return user_id
 }
 
-const authenticate = async (id, password) => {
+const authenticate = async (user_id, password) => {
     if (!connection) {
         throw new Error('База данных недоступна')
     }
-    const statement = `SELECT id FROM users WHERE id = '${id}' AND password = SHA2('${password}', 256);`
-    const result = await connection.execute(statement)
+    const usersResult = await connection.execute(`SELECT id FROM users WHERE id = '${user_id}' AND password = SHA2('${password}', 256);`)
 
-    if (result?.[0]?.[0]) {
-        return uuid()
+    if (usersResult?.[0]?.[0]) {
+        const token = uuid()
+        const statement = `INSERT INTO tokens (user_id, id) VALUES ('${user_id}', '${token}') ON DUPLICATE KEY UPDATE id = '${token}';`
+        await connection.execute(statement)
+        return token
     }
 
     return null
@@ -68,4 +79,4 @@ const search = async (first_name, second_name) => {
 
     return result?.[0] || []
 }
-export default {create, authenticate, get, search}
+export default {create, authenticate, get, search, findByToken}

@@ -1,72 +1,27 @@
 const PORT = 3000
-
 import express from 'express'
-import users from "./users.mjs";
+
+import users from './routers/users.mjs'
+import friends from './routers/friends.mjs'
+import posts from './routers/posts.mjs'
+import authenticate from './middlewares/authenticate.mjs'
 
 const app = express()
+
 app.use(express.json())
+
+app.use(users)
+app.use(authenticate, friends)
+app.use(authenticate, posts)
 
 app.get('/', (req, res) => {
     res.send('Добро пожаловать в социальную сеть OTUS!')
 })
 
-app.post('/user/register', async (req, res) => {
-    if (!req.body.first_name || !req.body.second_name || !req.body.password) {
-        return res.status(400).send('Невалидные данные')
-    }
-    try {
-        const user_id = await users.create(req.body)
-        res.send({user_id})
-    } catch (err) {
-        console.log(err.message)
-        return res.status(500).send('Ошибка сервера')
-    }
-})
 
-app.post('/login', async (req, res) => {
-    if (!req.body.id || !req.body.password) {
-        return res.status(400).send('Невалидные данные')
-    }
-    try {
-        const token = await users.authenticate(req.body.id, req.body.password)
-        if(token){
-            return res.send({token})
-        }
-        res.status(404).send('Пользователь не найден')
-    } catch (err) {
-        console.log(err.message)
-        return res.status(500).send('Ошибка сервера')
-    }
-})
 
-app.get('/user/get/:id', async (req, res) => {
-    if (!req.params.id) {
-        return res.status(400).send('Невалидные данные')
-    }
-    try {
-        const user = await users.get(req.params.id)
-        if(user){
-            return res.send(user)
-        }
-        res.status(404).send('Анкета не найдена')
-    } catch (err) {
-        console.log(err.message)
-        return res.status(500).send('Ошибка сервера')
-    }
-})
 
-app.get('/user/search', async (req, res) => {
-    if (!req.query.first_name && !req.query.second_name) {
-        return res.status(400).send('Невалидные данные')
-    }
-    try {
-        const result = await users.search(req.query.first_name, req.query.second_name)
-        return res.send(result)
-    } catch (err) {
-        console.log(err.message)
-        return res.status(500).send('Ошибка сервера')
-    }
-})
+
 
 app.listen(PORT, () => {
     console.log(`OTUS social network app listening on port ${PORT}`)

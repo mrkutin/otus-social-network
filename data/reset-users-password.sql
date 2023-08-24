@@ -1,0 +1,1 @@
+UPDATE users SET password = SHA2('12345', 256);

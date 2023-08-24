@@ -1,6 +1,17 @@
 version: "3.3"
 
 services:
+  redis:
+    image: redis/redis-stack
+    restart: on-failure
+    ports:
+      - 6379:6379
+      - 8001:8001
+#    volumes:
+#      - redis-data:/data
+    environment:
+      REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
+
   db:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
@@ -11,9 +22,11 @@ services:
     ports:
       - 3306:3306
     volumes:
+      - ./data/master.cnf:/etc/mysql/conf.d/master.cnf
       - ./data/init.sql:/docker-entrypoint-initdb.d/1-init.sql
-      - ./data/people-sample.sql:/docker-entrypoint-initdb.d/2-people-sample.sql
+      - ./data/people-one.sql:/docker-entrypoint-initdb.d/2-people-one.sql
       - ./data/people-two.sql:/docker-entrypoint-initdb.d/3-people-two.sql
+
   webserver:
     depends_on:
       - db
