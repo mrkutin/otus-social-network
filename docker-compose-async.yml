@@ -13,7 +13,7 @@ services:
     volumes:
       - ./async-replication/master.cnf:/etc/mysql/conf.d/master.cnf
       - ./async-replication/master-init.sql:/docker-entrypoint-initdb.d/1-init.sql
-#      - ./async-replication/people-sample.sql:/docker-entrypoint-initdb.d/2-people-sample.sql
+#      - ./async-replication/101-people-sample.sql:/docker-entrypoint-initdb.d/2-101-people-sample.sql
 
   slave-one:
     depends_on:

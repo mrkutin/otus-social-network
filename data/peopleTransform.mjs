@@ -18,7 +18,7 @@ const statementsOne = linesPartOne.map(line => {
     return `INSERT INTO users (id, first_name, second_name, age, city) VALUES('${uuid()}', '${first_name}', '${second_name}', ${age}, '${city}');`
 })
 
-fs.writeFileSync('./people-sample.sql', statementsOne.join('\n'), {encoding: 'utf8'})
+fs.writeFileSync('./101-people-sample.sql', statementsOne.join('\n'), {encoding: 'utf8'})
 
 for (let i = 500000; i < 1000000; i++){
     linesPartTwo.push(lines[i])
