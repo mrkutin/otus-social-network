@@ -28,7 +28,7 @@ services:
 #      - ./data/people-one.sql:/docker-entrypoint-initdb.d/2-people-one.sql
 #      - ./data/people-two.sql:/docker-entrypoint-initdb.d/3-people-two.sql
       - ./data/friends.sql:/docker-entrypoint-initdb.d/4-friends.sql
-      - ./data/posts.sql:/docker-entrypoint-initdb.d/5-posts.sql
+      - ./data/posts.sql:/docker-entrypoint-initdb.d/5-posts-old.sql
 #      - redis-data:/var/lib/mysql
   webserver:
     depends_on:
