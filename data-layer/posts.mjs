@@ -51,4 +51,4 @@ const remove = async id => {
     await connection.execute(statement)
 }
 
-export default {create, update, get, remove, allUsersFeed}
+export default {create, update, get, remove}
