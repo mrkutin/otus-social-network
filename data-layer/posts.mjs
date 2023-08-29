@@ -43,17 +43,6 @@ const get = async id => {
     return res?.[0]?.[0] || null
 }
 
-// const friendStatuses = async user_id => {
-//     if (!connection) {
-//         throw new Error('База данных не доступна')
-//     }
-//todo exists join for one user's friends only!!!
-
-//     const statement = `SELECT id, user_id, text FROM posts ORDER BY created_at desc limit 1000;`
-//     const res = await connection.execute(statement)
-//     return res?.[0]?.[0] || null
-// }
-
 const remove = async id => {
     if (!connection) {
         throw new Error('База данных не доступна')
@@ -62,4 +51,4 @@ const remove = async id => {
     await connection.execute(statement)
 }
 
-export default {create, update, get, remove}
+export default {create, update, get, remove, allUsersFeed}
