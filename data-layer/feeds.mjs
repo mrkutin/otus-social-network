@@ -1,4 +1,4 @@
-const USER_FEED_SIZE = 1000;
+const USER_FEED_SIZE = process.env.USER_FEED_SIZE || 1000;
 const REDIS_CONNECTION_STRING = `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
 
 import Redis from 'ioredis'
