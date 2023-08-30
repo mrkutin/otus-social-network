@@ -1,9 +1,9 @@
 const USER_FEED_SIZE = 1000;
+const REDIS_CONNECTION_STRING = `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
 
-const REDIS_HOST = process.env.REDIS_HOST || 'redis://0.0.0.0:6379'
 import Redis from 'ioredis'
 
-const redis = new Redis(REDIS_HOST)
+const redis = new Redis(REDIS_CONNECTION_STRING)
 
 import mysql from 'mysql2/promise'
 
@@ -23,7 +23,7 @@ try {
 //find which followers are affected by all posts and return up to getUserFeedSize most recent posts for each follower
 const feedAffectedByAllAuthorsPosts = async getUserFeedSize => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
 
     const statement = `SELECT * FROM 
@@ -38,27 +38,6 @@ const feedAffectedByAllAuthorsPosts = async getUserFeedSize => {
     const res = await connection.execute(statement)
     return res?.[0] || null
 }
-
-//find which followers are affected by one user posts only and return up to getUserFeedSize most recent posts for each follower
-// const feedAffectedByOneAuthorPosts = async (getUserFeedSize, user_id) => {
-//     if (!connection) {
-//         throw new Error('База данных не доступна')
-//     }
-//
-//     const statement = `SELECT * FROM 
-//         (SELECT friends.user_id, posts.id AS post_id, posts.user_id AS author_id, posts.created_at, posts.text,
-//         ROW_NUMBER() OVER (PARTITION BY friends.user_id ORDER BY posts.id) AS count_number
-//         FROM friends
-//         INNER JOIN posts  
-//         ON friends.friend_id = posts.user_id
-//         AND friends.friend_id = '${user_id}'
-//         ORDER BY user_id ASC, created_at DESC) AS all_posts
-//         WHERE count_number <= ${getUserFeedSize};`
-//
-//     const res = await connection.execute(statement)
-//     return res?.[0] || null
-// }
-
 
 const updateCache = async feed => {
     //group posts by user_id
@@ -98,11 +77,6 @@ const rebuildCache = async () => {
     console.log('=== CACHE SUCCESSFULLY UPDATED === ' + new Date())
 }
 
-// const rebuildCache = async (user_id) => {
-//     const feed = await feedAffectedByOneAuthorPosts(USER_FEED_SIZE, user_id)
-//     await updateCache(feed)
-// }
-
 const getUserFeed = async (user_id, offset = 0, limit) => {
     const feed = []
 
@@ -115,7 +89,5 @@ const getUserFeed = async (user_id, offset = 0, limit) => {
     }
     return feed
 }
-
-// await warmUpCache()
 
 export default {rebuildCache, getUserFeed}

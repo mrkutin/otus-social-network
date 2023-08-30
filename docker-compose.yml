@@ -7,15 +7,13 @@ services:
     ports:
       - 6379:6379
       - 8001:8001
-#    volumes:
-#      - redis-data:/data
     environment:
       REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
 
   db:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
-    restart: always
+    restart: on-failure
     environment:
       MYSQL_ROOT_PASSWORD: topsecret
       LANG: C.UTF-8
@@ -26,23 +24,18 @@ services:
       - ./data/init.sql:/docker-entrypoint-initdb.d/1-init.sql
       - ./data/101-people-sample.sql:/docker-entrypoint-initdb.d/2-people-sample.sql
       - ./data/tokens.sql:/docker-entrypoint-initdb.d/3-tokens.sql
-#      - ./data/people-one.sql:/docker-entrypoint-initdb.d/2-people-one.sql
-#      - ./data/people-two.sql:/docker-entrypoint-initdb.d/3-people-two.sql
       - ./data/friends.sql:/docker-entrypoint-initdb.d/4-friends.sql
       - ./data/posts.sql:/docker-entrypoint-initdb.d/5-posts-old.sql
-#      - redis-data:/var/lib/mysql
   webserver:
     depends_on:
       - db
+      - redis
     build:
       context: .
     image: webserver
-#    restart: on-failure
+    restart: on-failure
     ports:
       - 3000:3000
     environment:
       MYSQL_HOST: db
-
-#volumes:
-#  - mysql-data:
-#  - redis-data:
+      REDIS_HOST: redis

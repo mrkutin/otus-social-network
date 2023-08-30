@@ -18,7 +18,7 @@ try {
 
 const findByToken = async token => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE EXISTS (SELECT 1 FROM tokens WHERE tokens.id = '${token}' AND users.id = tokens.user_id);`
     const result = await connection.execute(statement)
@@ -27,7 +27,7 @@ const findByToken = async token => {
 
 const create = async user => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const user_id = uuid()
     const statement = `INSERT INTO users (id, password, first_name, second_name) VALUES('${user_id}', SHA2('${user.password}', 256), '${user.first_name || ''}', '${user.second_name || ''}');`

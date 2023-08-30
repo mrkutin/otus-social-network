@@ -18,7 +18,7 @@ try {
 
 const create = async (user_id, text) => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const id = uuid()
     const statement = `INSERT INTO posts (id, user_id, text) VALUES ('${id}', '${user_id}', '${text}');`
@@ -28,7 +28,7 @@ const create = async (user_id, text) => {
 
 const update = async (id, text) => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const statement = `UPDATE posts SET text = '${text}' WHERE id = '${id}';`
     await connection.execute(statement)
@@ -36,7 +36,7 @@ const update = async (id, text) => {
 
 const get = async id => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const statement = `SELECT id, text FROM posts WHERE id = '${id}';`
     const res = await connection.execute(statement)
@@ -45,7 +45,7 @@ const get = async id => {
 
 const remove = async id => {
     if (!connection) {
-        throw new Error('База данных не доступна')
+        throw new Error('База данных недоступна')
     }
     const statement = `DELETE FROM posts WHERE id = '${id}';`
     await connection.execute(statement)
