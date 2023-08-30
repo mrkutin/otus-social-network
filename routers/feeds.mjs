@@ -11,7 +11,7 @@ router.get('/post/feed', async (req, res) => {
     }
 
     try {
-        const feed = await feeds.getUserFeed(req.user.id, req.params.offset, req.params.limit)
+        const feed = await feeds.getUserFeed(req.user.id, isNaN(req.query.offset) ? 0 : parseInt(req.query.offset) , isNaN(req.query.limit) ? -1 : parseInt(req.query.limit))
         return res.status(200).send(feed)
     } catch (err) {
         console.log(err.message)

@@ -87,25 +87,24 @@ const rebuildCache = async () => {
     console.log('=== CACHE SUCCESSFULLY UPDATED === ' + new Date())
 }
 
-const getUserFeed = async (user_id, offset = 0, limit) => {
-    const feed = []
-
+const getUserFeed = async (user_id, offset = 0, limit = -1) => {
     const postIds = await redis.smembers(`USER-FEED-${user_id}`)
-    const postIdsLimited = postIds.slice(offset, offset + (limit || postIds.length))
 
-    for (const postId of postIdsLimited) {
+    const feed = await Promise.all(postIds.map(async postId => {
         const post = await redis.call('JSON.GET', `POST-${postId}`)
-        feed.push(JSON.parse(post))
-    }
+        return JSON.parse(post)
+    }))
 
-    return feed.sort((a, b) => {
+    const sortedFeed = feed.sort((a, b) => {
         if (a.created_at < b.created_at) {
             return 1
         } else if (a.created_at > b.created_at) {
             return -1
         }
         return 0
-    } )
+    })
+
+    return sortedFeed.slice(offset, offset + (limit === -1 ? sortedFeed.length : limit))
 }
 
 export default {rebuildCache, getUserFeed}
