@@ -25,6 +25,7 @@ services:
       - ./data/master.cnf:/etc/mysql/conf.d/master.cnf
       - ./data/init.sql:/docker-entrypoint-initdb.d/1-init.sql
       - ./data/101-people-sample.sql:/docker-entrypoint-initdb.d/2-people-sample.sql
+      - ./data/tokens.sql:/docker-entrypoint-initdb.d/3-tokens.sql
 #      - ./data/people-one.sql:/docker-entrypoint-initdb.d/2-people-one.sql
 #      - ./data/people-two.sql:/docker-entrypoint-initdb.d/3-people-two.sql
       - ./data/friends.sql:/docker-entrypoint-initdb.d/4-friends.sql

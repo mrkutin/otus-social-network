@@ -2,9 +2,11 @@ const USER_FEED_SIZE = 1000;
 
 const REDIS_HOST = process.env.REDIS_HOST || 'redis://0.0.0.0:6379'
 import Redis from 'ioredis'
+
 const redis = new Redis(REDIS_HOST)
 
 import mysql from 'mysql2/promise'
+
 const config = {
     host: process.env.MYSQL_HOST || 'localhost',
     database: 'social',
@@ -19,7 +21,7 @@ try {
 }
 
 //find which followers are affected by all posts and return up to getUserFeedSize most recent posts for each follower
-const feedAffectedByAllUsersPosts = async getUserFeedSize => {
+const feedAffectedByAllAuthorsPosts = async getUserFeedSize => {
     if (!connection) {
         throw new Error('База данных не доступна')
     }
@@ -38,59 +40,68 @@ const feedAffectedByAllUsersPosts = async getUserFeedSize => {
 }
 
 //find which followers are affected by one user posts only and return up to getUserFeedSize most recent posts for each follower
-const feedAffectedByOneUserPosts = async (getUserFeedSize, user_id) => {
-    if (!connection) {
-        throw new Error('База данных не доступна')
-    }
+// const feedAffectedByOneAuthorPosts = async (getUserFeedSize, user_id) => {
+//     if (!connection) {
+//         throw new Error('База данных не доступна')
+//     }
+//
+//     const statement = `SELECT * FROM 
+//         (SELECT friends.user_id, posts.id AS post_id, posts.user_id AS author_id, posts.created_at, posts.text,
+//         ROW_NUMBER() OVER (PARTITION BY friends.user_id ORDER BY posts.id) AS count_number
+//         FROM friends
+//         INNER JOIN posts  
+//         ON friends.friend_id = posts.user_id
+//         AND friends.friend_id = '${user_id}'
+//         ORDER BY user_id ASC, created_at DESC) AS all_posts
+//         WHERE count_number <= ${getUserFeedSize};`
+//
+//     const res = await connection.execute(statement)
+//     return res?.[0] || null
+// }
 
-    const statement = `SELECT * FROM 
-        (SELECT friends.user_id, posts.id AS post_id, posts.user_id AS author_id, posts.created_at, posts.text,
-        ROW_NUMBER() OVER (PARTITION BY friends.user_id ORDER BY posts.id) AS count_number
-        FROM friends
-        INNER JOIN posts  
-        ON friends.friend_id = posts.user_id
-        AND friends.friend_id = '${user_id}'
-        ORDER BY user_id ASC, created_at DESC) AS all_posts
-        WHERE count_number <= ${getUserFeedSize};`
-
-    const res = await connection.execute(statement)
-    return res?.[0] || null
-}
-
-const cleanUpCache = async () => {
-    //clean up existing lists
-    let keys = await redis.keys('USER-FEED-*')
-    for (const key of keys) {
-        await redis.del(key)
-    }
-
-    //clean up existing posts
-    keys = await redis.keys('POST-*')
-    for (const key of keys) {
-        await redis.del(key)
-    }
-}
 
 const updateCache = async feed => {
-    for(const post of feed){
-        //add post id to user feed list
-        await redis.rpush(`USER-FEED-${post.user_id}`, post.post_id)
-        //add post for faster read
-        const {user_id, count_number, ...rest} = post
-        await redis.call('JSON.SET', `POST-${post.post_id}`, '$', JSON.stringify(rest))
+    //group posts by user_id
+    const postsByAuthorId = feed.reduce((acc, post) => {
+        if (!acc[post.user_id]) {
+            acc[post.user_id] = []
+        }
+        acc[post.user_id].push(post)
+        return acc
+    }, {})
+    
+    for (const user_id in postsByAuthorId) {
+        //cleanup old posts for the user
+        const oldPostIds = await redis.lrange(`USER-FEED-${user_id}`, 0, -1)
+        if (oldPostIds.length) {
+            await Promise.all(oldPostIds.map(oldPostId => redis.del(`POST-${oldPostId}`)))
+        }
+
+        //clean up old list
+        await redis.del(`USER-FEED-${user_id}`)
+
+        //build up new cache for the user
+        for (const post of postsByAuthorId[user_id]) {
+            //add post id to user feed list
+            await redis.rpush(`USER-FEED-${post.user_id}`, post.post_id)
+            //add post for faster read
+            const {user_id, count_number, ...rest} = post
+            await redis.call('JSON.SET', `POST-${post.post_id}`, '$', JSON.stringify(rest))
+        }
     }
 }
 
-const warmUpCache = async () => {
-    await cleanUpCache()
-    const feed = await feedAffectedByAllUsersPosts(USER_FEED_SIZE)
+const rebuildCache = async () => {
+    // await cleanUpAllUsersFeed()
+    const feed = await feedAffectedByAllAuthorsPosts(USER_FEED_SIZE)
     await updateCache(feed)
+    console.log('=== CACHE SUCCESSFULLY UPDATED === ' + new Date())
 }
 
-const updateFeed = async (user_id) => {
-    const feed = await feedAffectedByOneUserPosts(USER_FEED_SIZE, user_id)
-    await updateCache(feed)
-}
+// const rebuildCache = async (user_id) => {
+//     const feed = await feedAffectedByOneAuthorPosts(USER_FEED_SIZE, user_id)
+//     await updateCache(feed)
+// }
 
 const getUserFeed = async (user_id, offset = 0, limit) => {
     const feed = []
@@ -105,6 +116,6 @@ const getUserFeed = async (user_id, offset = 0, limit) => {
     return feed
 }
 
-await warmUpCache()
+// await warmUpCache()
 
-export default {warmUpCache, getUserFeed, updateFeed}
+export default {rebuildCache, getUserFeed}

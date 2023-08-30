@@ -1,6 +1,9 @@
+const CACHE_UPDATE_INTERVAL_MS = process.env.CACHE_UPDATE_INTERVAL_MS || 3000
+
 import express from 'express'
+
 const router = express.Router()
-import feeds from "../data-layer/feeds.mjs";
+import feeds from "../data-layer/feeds.mjs"
 
 router.get('/post/feed', async (req, res) => {
     if (!req.user) {
@@ -15,5 +18,10 @@ router.get('/post/feed', async (req, res) => {
         return res.status(500).send('Ошибка сервера')
     }
 })
+
+//rebuild all cache every CACHE_UPDATE_INTERVAL_MS
+setInterval(async () => {
+    await feeds.rebuildCache()
+}, CACHE_UPDATE_INTERVAL_MS)
 
 export default router
