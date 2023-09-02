@@ -10,8 +10,8 @@ services:
       - MONGODB_REPLICA_SET_MODE=primary
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=cfgreplicaset
-#    volumes:
-#      - 'cfg_data:/bitnami'
+    volumes:
+      - ./cfg_data:/bitnami
 
   mongodb-sharded:
     image: docker.io/bitnami/mongodb-sharded:6.0
@@ -37,7 +37,6 @@ services:
       - MONGODB_REPLICA_SET_NAME=shard0
     volumes:
       - ./shard0_data:/bitnami
-#      - 'shard0_data:/bitnami'
 
   mongodb-shard1:
     image: docker.io/bitnami/mongodb-sharded:6.0
@@ -51,8 +50,3 @@ services:
       - MONGODB_REPLICA_SET_NAME=shard1
     volumes:
       - ./shard1_data:/bitnami
-#      - 'shard1_data:/bitnami'
-
-#volumes:
-#  cfg_data:
-#    driver: local
