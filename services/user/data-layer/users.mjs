@@ -1,82 +1,105 @@
-import mysql from 'mysql2/promise'
+const DB_HOST = process.env.DB_HOST || 'localhost'
+const DB_PORT = process.env.DB_PORT || 27017
+const DB_USER = process.env.DB_USER || 'root'
+const DB_PASS = process.env.DB_PASS || 'topsecret'
+
+import {MongoClient, ObjectId} from 'mongodb'
+import crypto from 'crypto'
 import {v4 as uuid} from 'uuid'
 
-const config = {
-    host: process.env.MYSQL_HOST || 'localhost',
-    database: 'social',
-    user: 'root',
-    password: 'topsecret'
-}
-
-let connection
+const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
+const client = new MongoClient(connectionString)
 
 try {
-    connection = await mysql.createConnection(config)
+    await client.connect()
+    console.log("MONGO CONNECTED!")
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }
 
-const findByToken = async token => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE EXISTS (SELECT 1 FROM tokens WHERE tokens.id = '${token}' AND users.id = tokens.user_id);`
-    const result = await connection.execute(statement)
-    return result?.[0]?.[0] || null
-}
-
-const create = async user => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const user_id = uuid()
-    const statement = `INSERT INTO users (id, password, first_name, second_name) VALUES('${user_id}', SHA2('${user.password}', 256), '${user.first_name || ''}', '${user.second_name || ''}');`
-    await connection.execute(statement)
-    return user_id
-}
+const socialDb = client.db('social')
+const dbUsers = socialDb.collection('users')
 
 const authenticate = async (user_id, password) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const usersResult = await connection.execute(`SELECT id FROM users WHERE id = '${user_id}' AND password = SHA2('${password}', 256);`)
-
-    if (usersResult?.[0]?.[0]) {
-        const token = uuid()
-        const statement = `INSERT INTO tokens (user_id, id) VALUES ('${user_id}', '${token}') ON DUPLICATE KEY UPDATE id = '${token}';`
-        await connection.execute(statement)
+    const token = uuid()
+    const res = await dbUsers.findOneAndUpdate(
+        {
+            _id: new ObjectId(user_id),
+            password: crypto.createHash('sha256').update(password, 'utf8').digest()
+        },
+        {
+            $set: {token, updated_at: new Date()}
+        })
+    if (res) {
         return token
     }
 
     return null
 }
 
-const get = async id => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE id = '${id}';`
-    const result = await connection.execute(statement)
+const findByToken = async token => {
+    const res =  await dbUsers.aggregate([
+        {
+            $match: {token}
+        },
+        {
+            $project: {
+                first_name: 1, second_name: 1, age: 1, city: 1, birthdate: 1, biography: 1
+            }
+        }
+    ]).toArray()
+    return res?.[0] || null
+}
 
-    return result?.[0]?.[0] || null
+const create = async user => {
+    const res = await dbUsers.insertOne({
+        password: crypto.createHash('sha256').update(user.password, 'utf8').digest(),
+        first_name: user.first_name,
+        second_name: user.second_name,
+        age: user.age,
+        city: user.city,
+        birthdate: user.birthdate,
+        biography: user.biography,
+        created_at: new Date()
+    })
+
+    return res.insertedId.toString()
+}
+
+const get = async id => {
+    const res =  await dbUsers.aggregate([
+        {
+            $match: {_id: new ObjectId(id)}
+        },
+        {
+            $project: {
+                first_name: 1, second_name: 1, age: 1, city: 1, birthdate: 1, biography: 1
+            }
+        }
+    ]).toArray()
+    return res?.[0] || null
 }
 
 const search = async (first_name, second_name) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-
-    const like_clauses = []
+    const $match = {}
     if(first_name) {
-        like_clauses.push(`first_name LIKE '${first_name}%'`)
+        $match.first_name = { $regex: `${first_name}*`, $options: 'i'}
     }
     if(second_name) {
-        like_clauses.push(`second_name LIKE '${second_name}%'`)
+        $match.second_name = { $regex: `${second_name}*`, $options: 'i'}
     }
 
-    const statement = `SELECT id, first_name, second_name, age, birthdate, biography, city FROM users WHERE ${like_clauses.join(' AND ')};`
-    const result = await connection.execute(statement)
-
-    return result?.[0] || []
+    const res =  await dbUsers.aggregate([
+        {
+            $match
+        },
+        {
+            $project: {
+                first_name: 1, second_name: 1, age: 1, city: 1, birthdate: 1, biography: 1
+            }
+        }
+    ]).toArray()
+    return res || null
 }
-export default {create, authenticate, get, search, findByToken}
+
+export default {authenticate, findByToken, create, get, search}

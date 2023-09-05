@@ -20,8 +20,9 @@ router.get('/post/feed', async (req, res) => {
 })
 
 //rebuild all cache every CACHE_UPDATE_INTERVAL_MS
-setInterval(async () => {
-    await feeds.rebuildCache()
-}, CACHE_UPDATE_INTERVAL_MS)
+//todo uncomment
+// setInterval(async () => {
+//     await feeds.rebuildCache()
+// }, CACHE_UPDATE_INTERVAL_MS)
 
 export default router

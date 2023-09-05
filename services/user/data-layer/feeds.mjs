@@ -1,42 +1,88 @@
-const USER_FEED_SIZE = process.env.USER_FEED_SIZE || 1000;
+const DB_HOST = process.env.DB_HOST || 'localhost'
+const DB_PORT = process.env.DB_PORT || 27017
+const DB_USER = process.env.DB_USER || 'root'
+const DB_PASS = process.env.DB_PASS || 'topsecret'
+const USER_FEED_SIZE = process.env.USER_FEED_SIZE || 1000
 const REDIS_CONNECTION_STRING = `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
 
 import Redis from 'ioredis'
 
 const redis = new Redis(REDIS_CONNECTION_STRING)
 
-import mysql from 'mysql2/promise'
+import {MongoClient, ObjectId} from 'mongodb'
 
-const config = {
-    host: process.env.MYSQL_HOST || 'localhost',
-    database: 'social',
-    user: 'root',
-    password: 'topsecret'
-}
-let connection
+const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
+const client = new MongoClient(connectionString)
+
 try {
-    connection = await mysql.createConnection(config)
+    await client.connect()
+    console.log("MONGO CONNECTED!")
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }
 
+const socialDb = client.db('social')
+const dbFriends = socialDb.collection('friends')
+
+
 //find which followers are affected by all posts and return up to getUserFeedSize most recent posts for each follower
 const feedAffectedByAllAuthorsPosts = async getUserFeedSize => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-
-    const statement = `SELECT * FROM 
-        (SELECT friends.user_id, posts.id AS post_id, posts.user_id AS author_id, posts.created_at, posts.text,
-        ROW_NUMBER() OVER (PARTITION BY friends.user_id ORDER BY posts.created_at DESC) AS count_number
-        FROM friends
-        INNER JOIN posts  
-        ON friends.friend_id = posts.user_id) AS all_posts
-        WHERE count_number <= ${getUserFeedSize}
-        ;`
-
-    const res = await connection.execute(statement)
+    const res = await dbFriends.aggregate([
+        {$limit: 2},
+        {
+            $lookup: {
+                from: 'posts',
+                localField: 'friend_id',
+                foreignField: 'user_id',
+                as: 'friends_posts'
+            }
+        },
+        {
+            $unwind: {
+                path: '$friends_posts',
+                preserveNullAndEmptyArrays: false
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                user_id: 1,
+                post_id: '$friends_posts._id',
+                author_id: '$friends_posts.user_id',
+                created_at: '$friends_posts.created_at',
+                text: '$friends_posts.text'
+            }
+        },
+        {
+            $setWindowFields: {
+                partitionBy: '$user_id',
+                sortBy: { 'friends_posts.created_at': -1 },
+                output: {
+                    count_number: {
+                        $documentNumber: {}
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                count_number: {$lte: getUserFeedSize}
+            }
+        }
+    ]).toArray()
     return res?.[0] || null
+
+    // const statement = `SELECT * FROM
+    //     (SELECT friends.user_id, posts.id AS post_id, posts.user_id AS author_id, posts.created_at, posts.text,
+    //     ROW_NUMBER() OVER (PARTITION BY friends.user_id ORDER BY posts.created_at DESC) AS count_number
+    //     FROM friends
+    //     INNER JOIN posts
+    //     ON friends.friend_id = posts.user_id) AS all_posts
+    //     WHERE count_number <= ${getUserFeedSize}
+    //     ;`
+
+    // const res = await connection.execute(statement)
+    // return res?.[0] || null
 }
 
 const updateCache = async feed => {

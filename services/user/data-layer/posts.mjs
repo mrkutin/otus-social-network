@@ -1,54 +1,57 @@
-import mysql from 'mysql2/promise'
-import {v4 as uuid} from 'uuid'
+const DB_HOST = process.env.DB_HOST || 'localhost'
+const DB_PORT = process.env.DB_PORT || 27017
+const DB_USER = process.env.DB_USER || 'root'
+const DB_PASS = process.env.DB_PASS || 'topsecret'
 
-const config = {
-    host: process.env.MYSQL_HOST || 'localhost',
-    database: 'social',
-    user: 'root',
-    password: 'topsecret'
-}
+import {MongoClient, ObjectId} from 'mongodb'
 
-let connection
+const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
+const client = new MongoClient(connectionString)
 
 try {
-    connection = await mysql.createConnection(config)
+    await client.connect()
+    console.log("MONGO CONNECTED!")
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }
 
+const socialDb = client.db('social')
+const dbPosts = socialDb.collection('posts')
+
 const create = async (user_id, text) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const id = uuid()
-    const statement = `INSERT INTO posts (id, user_id, text) VALUES ('${id}', '${user_id}', '${text}');`
-    await connection.execute(statement)
-    return id
+    const res = await dbPosts.insertOne({
+        user_id: new Object(user_id),
+        text,
+        created_at: new Date()
+    })
+
+    return res.insertedId.toString()
 }
 
-const update = async (id, text) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `UPDATE posts SET text = '${text}' WHERE id = '${id}';`
-    await connection.execute(statement)
+const update = (id, text) => {
+    dbPosts.findOneAndUpdate(
+        {
+            _id: new ObjectId(id)
+        },
+        {
+            $set: {text, updated_at: new Date()}
+        })
 }
 
 const get = async id => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `SELECT id, text FROM posts WHERE id = '${id}';`
-    const res = await connection.execute(statement)
-    return res?.[0]?.[0] || null
+    const res = await dbPosts.aggregate([
+        {
+            $match: {_id: new ObjectId(id)}
+        },
+        {
+            $project: {text: 1}
+        }
+    ]).toArray()
+    return res?.[0] || null
 }
 
-const remove = async id => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `DELETE FROM posts WHERE id = '${id}';`
-    await connection.execute(statement)
+const remove = id => {
+    dbPosts.deleteOne({_id: new ObjectId(id)})
 }
 
 export default {create, update, get, remove}

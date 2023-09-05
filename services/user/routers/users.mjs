@@ -21,6 +21,7 @@ router.post('/login', async (req, res) => {
     }
     try {
         const token = await users.authenticate(req.body.id, req.body.password)
+
         if (token) {
             return res.send({token})
         }

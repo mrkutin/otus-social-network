@@ -1,7 +1,6 @@
 import express from 'express'
 const router = express.Router()
 import friends from "../data-layer/friends.mjs"
-import feeds from "../data-layer/feeds.mjs"
 
 router.put('/friend/set/:user_id', async (req, res) => {
     if (!req.params.user_id) {

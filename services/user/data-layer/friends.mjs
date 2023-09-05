@@ -1,34 +1,40 @@
-import mysql from 'mysql2/promise'
+const DB_HOST = process.env.DB_HOST || 'localhost'
+const DB_PORT = process.env.DB_PORT || 27017
+const DB_USER = process.env.DB_USER || 'root'
+const DB_PASS = process.env.DB_PASS || 'topsecret'
 
-const config = {
-    host: process.env.MYSQL_HOST || 'localhost',
-    database: 'social',
-    user: 'root',
-    password: 'topsecret'
-}
+import {MongoClient, ObjectId} from 'mongodb'
 
-let connection
+const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
+const client = new MongoClient(connectionString)
 
 try {
-    connection = await mysql.createConnection(config)
+    await client.connect()
+    console.log("MONGO CONNECTED!")
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }
 
-const set = async (user_id, friend_id) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `INSERT INTO friends (user_id, friend_id) VALUES ('${user_id}', '${friend_id}') ON DUPLICATE KEY UPDATE user_id = '${user_id}', friend_id = '${friend_id}', updated_at = CURRENT_TIMESTAMP;`
-    await connection.execute(statement)
+const socialDb = client.db('social')
+const dbFriends = socialDb.collection('friends')
+
+const set = (user_id, friend_id) => {
+    dbFriends.findOneAndUpdate(
+        {
+            user_id: new Object(user_id),
+            friend_id: new Object(friend_id),
+        },
+        {
+            $set: {updated_at: new Date()},
+            $setOnInsert: {created_at: new Date()}
+        })
 }
 
-const unset = async (user_id, friend_id) => {
-    if (!connection) {
-        throw new Error('База данных недоступна')
-    }
-    const statement = `DELETE FROM friends WHERE user_id = '${user_id}' AND friend_id = '${friend_id}';`
-    await connection.execute(statement)
+const unset = (user_id, friend_id) => {
+    dbFriends.deleteOne({
+        user_id: new Object(user_id),
+        friend_id: new Object(friend_id),
+    })
 }
 
 export default {set, unset}

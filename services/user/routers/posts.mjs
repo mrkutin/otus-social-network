@@ -1,7 +1,6 @@
 import express from 'express'
 const router = express.Router()
 import posts from "../data-layer/posts.mjs"
-import feeds from "../data-layer/feeds.mjs"
 
 router.post('/post/create', async (req, res) => {
     if (!req.user) {
