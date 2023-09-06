@@ -11,7 +11,7 @@ services:
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=cfgreplicaset
     volumes:
-      - ./cfg_data:/bitnami
+      - ./sharded-cluster-data/cfg_data:/bitnami
 
   mongodb-sharded:
     image: docker.io/bitnami/mongodb-sharded:6.0
@@ -24,6 +24,8 @@ services:
       - MONGODB_ROOT_PASSWORD=topsecret
     ports:
       - "27017:27017"
+    volumes:
+      - ./sharded-cluster-data/sharded_data:/bitnami
 
   mongodb-shard0:
     image: docker.io/bitnami/mongodb-sharded:6.0
@@ -36,7 +38,7 @@ services:
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=shard0
     volumes:
-      - ./shard0_data:/bitnami
+      - ./sharded-cluster-data/shard0_data:/bitnami
 
   mongodb-shard1:
     image: docker.io/bitnami/mongodb-sharded:6.0
@@ -49,7 +51,7 @@ services:
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=shard1
     volumes:
-      - ./shard1_data:/bitnami
+      - ./sharded-cluster-data/shard1_data:/bitnami
 
 #  mongodb-shard2:
 #    image: docker.io/bitnami/mongodb-sharded:6.0
@@ -62,4 +64,4 @@ services:
 #      - MONGODB_REPLICA_SET_KEY=replicasetkey123
 #      - MONGODB_REPLICA_SET_NAME=shard2
 #    volumes:
-#      - ./shard2_data:/bitnami
+#      - ./sharded-cluster-data/shard2_data:/bitnami
