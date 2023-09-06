@@ -16,7 +16,7 @@ const client = new MongoClient(connectionString)
 
 try {
     await client.connect()
-    console.log("MONGO CONNECTED!")
+    console.log('Feeds connected to MongoDB cluster')
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }
@@ -102,14 +102,14 @@ const updateCache = async feed => {
     }, {})
 
     for (const user_id in postsByUserId) {
-        //clean up old post ids from the user's feed
+        //clean up old post ids from the web's feed
         const oldUserPostIds = await redis.smembers(`USER-FEED-${user_id}`)
         const oldUserPostIdsToBeDeleted = oldUserPostIds.filter(x => !postIds.includes(x));
         await Promise.all(oldUserPostIdsToBeDeleted.map(oldPostId => redis.srem(`USER-FEED-${user_id}`, oldPostId)))
 
-        //build up new cache for the user
+        //build up new cache for the web
         for (const post of postsByUserId[user_id]) {
-            //add post id to user feed list
+            //add post id to web feed list
             await redis.sadd(`USER-FEED-${post.user_id}`, post.post_id)
             //add post too for faster read
             const {user_id, count_number, ...rest} = post

@@ -5,6 +5,7 @@ import users from './routers/users.mjs'
 import friends from './routers/friends.mjs'
 // todo import feeds from './routers/feeds.mjs'
 import posts from './routers/posts.mjs'
+import dialogs from './routers/dialogs.mjs'
 
 import authenticate from './middlewares/authenticate.mjs'
 
@@ -16,6 +17,7 @@ app.use(users)
 app.use(authenticate, friends)
 // todo app.use(authenticate, feeds)
 app.use(authenticate, posts)
+app.use(authenticate, dialogs)
 
 app.get('/', (req, res) => {
     res.send('Добро пожаловать в социальную сеть OTUS!')

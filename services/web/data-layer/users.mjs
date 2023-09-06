@@ -12,7 +12,7 @@ const client = new MongoClient(connectionString)
 
 try {
     await client.connect()
-    console.log("MONGO CONNECTED!")
+    console.log('Users connected to MongoDB cluster')
 } catch (err) {
     console.error('error connecting: ' + err.stack)
 }

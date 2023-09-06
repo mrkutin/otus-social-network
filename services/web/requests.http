@@ -1,0 +1,35 @@
+#login Роберт Абрамов, Воткинск
+POST http://0.0.0.0:3000/login
+Content-Type: application/json
+
+{"id": "64f82b80924be0d4572d5627", "password": "12345"}
+###
+
+# Сообщение от Роберта Абрамова Александру Абрамову
+POST http://0.0.0.0:3000/dialog/64f82b80924be0d4572d5628/send
+Authorization: Bearer 4828ad9e-b428-4747-ac7f-5da0b7d5cf97
+Content-Type: application/json
+
+{"text": "Сообщение от Роберта Абрамова Александру Абрамову - первое сообщение"}
+###
+
+#login Александр Абрамов, Домодедово
+POST http://0.0.0.0:3000/login
+Content-Type: application/json
+
+{"id": "64f82b80924be0d4572d5628", "password": "12345"}
+###
+
+# Сообщение от Александра Абрамова Роберту Абрамову
+POST http://0.0.0.0:3000/dialog/64f82b80924be0d4572d5627/send
+Authorization: Bearer 518c2ea3-11ff-40f6-8176-aa302ccc750e
+Content-Type: application/json
+
+{"text": "Сообщение от Александра Абрамова Роберту Абрамову - ответ"}
+###
+
+# диалог между Робертом Абрамовым (user_id) и Александром Абрамовым (bearer)
+GET http://0.0.0.0:3000/dialog/64f82b80924be0d4572d5628/list
+Authorization: Bearer 4828ad9e-b428-4747-ac7f-5da0b7d5cf97
+
+###
