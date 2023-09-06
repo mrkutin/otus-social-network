@@ -65,3 +65,26 @@ services:
 #      - MONGODB_REPLICA_SET_NAME=shard2
 #    volumes:
 #      - ./sharded-cluster-data/shard2_data:/bitnami
+
+#  redis:
+#    image: redis/redis-stack
+#    restart: on-failure
+#    ports:
+#      - 6379:6379
+#      - 8001:8001
+#    environment:
+#      REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
+
+  webserver:
+    depends_on:
+      - mongodb-sharded
+#      - redis
+    build:
+      context: ./services/web/
+    image: webserver
+    restart: on-failure
+    ports:
+      - 3000:3000
+    environment:
+      DB_HOST: mongodb-sharded
+#      REDIS_HOST: redis
