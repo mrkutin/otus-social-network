@@ -6,4 +6,5 @@ COPY ./*.mjs ./
 COPY ./routers ./routers
 COPY ./data-layer ./data-layer
 COPY ./middlewares ./middlewares
+COPY ./public ./public
 CMD npm start

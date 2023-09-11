@@ -4,7 +4,10 @@ import postsDb from '../data-layer/posts.mjs'
 import friendsDb from '../data-layer/friends.mjs'
 import redis from '../data-layer/redis.mjs'
 
-const server_name = `${process.env.NAME || 'single-server'}`
+const server_name = process.env.SERVER_NAME
+if(!server_name){
+    throw new Error('Environment variable SERVER_NAME must be setup!')
+}
 
 export default (httpServer) => {
     const io = new Server(httpServer)
@@ -34,11 +37,19 @@ export default (httpServer) => {
         if (posts && posts.length) {
             for (const post of posts) {
                 const postObject = await postsDb.get(post.post_id)
+
                 const followerIds = await friendsDb.followerIds(post.author_id)
-                const currentServerFollowerIds = redis.filterServerUsers(followerIds, server_name)
+                //console.log(JSON.stringify({followerIds}))
+
+                const currentServerFollowerIds = await redis.filterServerUsers(followerIds, server_name)
+                console.log(JSON.stringify({currentServerFollowerIds}))
+
                 for (const followerId of currentServerFollowerIds) {
                     const socketId = await redis.userToSocket(followerId)
+
                     if (socketId) {
+                        console.log(JSON.stringify({socketId}))
+
                         const socket = io.sockets.sockets.get(socketId)
                         if (socket) {
                             socket.emit('friend-posted', {

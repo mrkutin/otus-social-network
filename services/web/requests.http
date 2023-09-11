@@ -2,41 +2,27 @@
 POST http://0.0.0.0:3000/login
 Content-Type: application/json
 
-{"id": "64f85634157a7964c0ad2adb", "password": "12345"}
-###
-
-# Сообщение от Роберта Абрамова Александру Абрамову
-POST http://0.0.0.0:3000/dialog/64f85634157a7964c0ad2adc/send
-Authorization: Bearer 41919d8e-766d-428b-bf79-fda8e17f88ff
-Content-Type: application/json
-
-{"text": "Сообщение от Роберта Абрамова Александру Абрамову - первое сообщение"}
+{"id": "64ff19f1ce1ae476dfa18abf", "password": "12345"}
 ###
 
 #login Александр Абрамов, Домодедово
 POST http://0.0.0.0:3000/login
 Content-Type: application/json
 
-{"id": "64f85634157a7964c0ad2adc", "password": "12345"}
+{"id": "64ff19f1ce1ae476dfa18ac0", "password": "12345"}
 ###
 
-# Сообщение от Александра Абрамова Роберту Абрамову
-POST http://0.0.0.0:3000/dialog/64f85634157a7964c0ad2adb/send
-Authorization: Bearer 62fcf349-971d-47de-9e5b-92bf5d2e835d
+#login Илья Абрамов, Севастополь
+POST http://0.0.0.0:3000/login
 Content-Type: application/json
 
-{"text": "Сообщение от Александра Абрамова Роберту Абрамову - ответ"}
+{"id": "64ff19f1ce1ae476dfa18ac1", "password": "12345"}
 ###
 
-# диалог между Робертом Абрамовым (user_id) и Александром Абрамовым (bearer)
-GET http://0.0.0.0:3000/dialog/64f85634157a7964c0ad2adc/list
-Authorization: Bearer 41919d8e-766d-428b-bf79-fda8e17f88ff
-
-###
 
 # пост первого пользователя
 POST http://0.0.0.0:3000/post/create
-Authorization: Bearer 674eb579-4426-4549-8972-25a8b45f1473
+Authorization: Bearer a2961129-407a-481d-a188-3a76b9eeeb98
 Content-Type: application/json
 
 {"text": "Новый пост первого пользователя"}
