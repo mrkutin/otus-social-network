@@ -25,7 +25,7 @@ POST http://0.0.0.0:3000/post/create
 Authorization: Bearer a2961129-407a-481d-a188-3a76b9eeeb98
 Content-Type: application/json
 
-{"text": "Новый пост первого пользователя"}
+{"text": "Самый новый пост первого пользователя"}
 
 ###
 
