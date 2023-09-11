@@ -18,6 +18,8 @@ try {
 const socialDb = client.db('social')
 const dbPosts = socialDb.collection('posts')
 
+
+
 const create = async (user_id, text) => {
     const res = await dbPosts.insertOne({
         user_id: new Object(user_id),
@@ -54,4 +56,17 @@ const remove = id => {
     dbPosts.deleteOne({_id: new ObjectId(id)})
 }
 
-export default {create, update, get, remove}
+const getMany = async ids => {
+    const res = await dbPosts.aggregate([
+        {
+            $match: {_id: {$in: ids.map(id => new ObjectId(id))}}
+        },
+        {
+            $project: {user_id: 1, text: 1}
+        }
+    ]).toArray()
+    return res?.[0] || null
+}
+
+
+export default {create, update, get, remove, getMany}

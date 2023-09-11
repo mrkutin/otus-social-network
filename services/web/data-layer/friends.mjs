@@ -18,6 +18,14 @@ try {
 const socialDb = client.db('social')
 const dbFriends = socialDb.collection('friends')
 
+const followerIds = async user_id => {
+    const res = await dbFriends.aggregate([
+        {$match: {friend_id: new ObjectId(user_id)}},
+        {$project: {user_id: 1}}
+    ]).toArray()
+    return res.map(follower => follower.user_id.toString())
+}
+
 const set = (user_id, friend_id) => {
     dbFriends.findOneAndUpdate(
         {
@@ -37,4 +45,4 @@ const unset = (user_id, friend_id) => {
     })
 }
 
-export default {set, unset}
+export default {set, unset, followerIds}

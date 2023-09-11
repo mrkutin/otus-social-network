@@ -3,13 +3,8 @@ const DB_PORT = process.env.DB_PORT || 27017
 const DB_USER = process.env.DB_USER || 'root'
 const DB_PASS = process.env.DB_PASS || 'topsecret'
 const USER_FEED_SIZE = process.env.USER_FEED_SIZE || 1000
-const REDIS_CONNECTION_STRING = `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
 
-import Redis from 'ioredis'
-
-const redis = new Redis(REDIS_CONNECTION_STRING)
-
-import {MongoClient, ObjectId} from 'mongodb'
+import {MongoClient} from 'mongodb'
 
 const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
 const client = new MongoClient(connectionString)
@@ -56,7 +51,7 @@ const feedAffectedByAllAuthorsPosts = async getUserFeedSize => {
         {
             $setWindowFields: {
                 partitionBy: '$user_id',
-                sortBy: { 'friends_posts.created_at': -1 },
+                sortBy: {'friends_posts.created_at': -1},
                 output: {
                     count_number: {
                         $documentNumber: {}
@@ -127,7 +122,6 @@ const updateCache = async feed => {
 }
 
 const rebuildCache = async () => {
-    // await cleanUpAllUsersFeed()
     const feed = await feedAffectedByAllAuthorsPosts(USER_FEED_SIZE)
     await updateCache(feed)
     console.log('=== CACHE SUCCESSFULLY UPDATED === ' + new Date())

@@ -37,19 +37,7 @@ const authenticate = async (user_id, password) => {
     return null
 }
 
-const findByToken = async token => {
-    const res =  await dbUsers.aggregate([
-        {
-            $match: {token}
-        },
-        {
-            $project: {
-                first_name: 1, second_name: 1, age: 1, city: 1, birthdate: 1, biography: 1
-            }
-        }
-    ]).toArray()
-    return res?.[0] || null
-}
+const findByToken = token => dbUsers.findOne({token})
 
 const create = async user => {
     const res = await dbUsers.insertOne({
@@ -66,8 +54,16 @@ const create = async user => {
     return res.insertedId.toString()
 }
 
+const update = async user => {
+    const {_id, ...rest} = user
+    await dbUsers.updateOne(
+        {_id: new ObjectId(_id)},
+        {$set: rest}
+    )
+}
+
 const get = async id => {
-    const res =  await dbUsers.aggregate([
+    const res = await dbUsers.aggregate([
         {
             $match: {_id: new ObjectId(id)}
         },
@@ -82,14 +78,14 @@ const get = async id => {
 
 const search = async (first_name, second_name) => {
     const $match = {}
-    if(first_name) {
-        $match.first_name = { $regex: `${first_name}*`, $options: 'i'}
+    if (first_name) {
+        $match.first_name = {$regex: `${first_name}*`, $options: 'i'}
     }
-    if(second_name) {
-        $match.second_name = { $regex: `${second_name}*`, $options: 'i'}
+    if (second_name) {
+        $match.second_name = {$regex: `${second_name}*`, $options: 'i'}
     }
 
-    const res =  await dbUsers.aggregate([
+    const res = await dbUsers.aggregate([
         {
             $match
         },

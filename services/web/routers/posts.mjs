@@ -1,6 +1,8 @@
 import express from 'express'
+
 const router = express.Router()
-import posts from "../data-layer/posts.mjs"
+import posts from '../data-layer/posts.mjs'
+import redis from '../data-layer/redis.mjs'
 
 router.post('/post/create', async (req, res) => {
     if (!req.user) {
@@ -12,8 +14,9 @@ router.post('/post/create', async (req, res) => {
     }
 
     try {
-        const id = await posts.create(req.user.id, req.body.text)
-        return res.status(200).send(id)
+        const post_id = await posts.create(req.user._id, req.body.text)
+        await redis.addToQueue('stream:post:created', req.user._id.toString(), post_id)
+        return res.status(200).send(post_id)
     } catch (err) {
         console.log(err.message)
         return res.status(500).send('Ошибка сервера')

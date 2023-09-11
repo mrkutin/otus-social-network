@@ -33,3 +33,14 @@ GET http://0.0.0.0:3000/dialog/64f85634157a7964c0ad2adc/list
 Authorization: Bearer 41919d8e-766d-428b-bf79-fda8e17f88ff
 
 ###
+
+# пост первого пользователя
+POST http://0.0.0.0:3000/post/create
+Authorization: Bearer 674eb579-4426-4549-8972-25a8b45f1473
+Content-Type: application/json
+
+{"text": "Новый пост первого пользователя"}
+
+###
+
+
