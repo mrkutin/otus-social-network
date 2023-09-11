@@ -26,6 +26,8 @@ app.head('/health', function (req, res) {
 
 var numUsers = 0;
 
+
+// todo io.sockets.socket(socketId).emit(msg);
 io.on('connection', function (socket) {
   socket.emit('my-name-is', serverName);
 
