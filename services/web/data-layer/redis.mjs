@@ -1,12 +1,14 @@
-const REDIS_CONNECTION_STRING = `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`
 import Redis from 'ioredis'
 
-const redis = new Redis(REDIS_CONNECTION_STRING)
+const redis = new Redis.Cluster([{
+    host: process.env.REDIS_HOST,
+    port: 6379
+}])
 
 try {
     await redis.xgroup('CREATE', 'stream:post:created', process.env.SERVER_NAME, '$', 'MKSTREAM')
 } catch (e) {
-    console.log('Group "processor" already exists in stream:post:created, skipping')
+    console.log(`Group "${process.env.SERVER_NAME}" already exists in stream:post:created, skipping`)
 }
 
 
