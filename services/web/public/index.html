@@ -83,13 +83,13 @@
                 }
             });
 
-            socket.on('connect', () => {
-                const item = document.createElement('li');
-                item.textContent = 'Connected successfully!';
-                messages.appendChild(item);
-                window.scrollTo(0, document.body.scrollHeight);
-                input.value = '';
-            });
+            // socket.on('connect', () => {
+            //     const item = document.createElement('li');
+            //     item.textContent = 'Connected successfully!';
+            //     messages.appendChild(item);
+            //     window.scrollTo(0, document.body.scrollHeight);
+            //     input.value = '';
+            // });
 
             socket.on('connect_error', (err) => {
                 const item = document.createElement('li');
@@ -97,6 +97,13 @@
                 messages.appendChild(item);
                 window.scrollTo(0, document.body.scrollHeight);
                 input.value = '';
+            });
+
+            socket.on('connected', function (data) {
+                const item = document.createElement('li');
+                item.textContent = 'Successfully connected to ' + data.serverName;
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
             });
 
             socket.on('friend-posted', function (data) {

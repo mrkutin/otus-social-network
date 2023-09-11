@@ -24,6 +24,7 @@ export default (httpServer) => {
             await redis.unmapUserSocket(server_name, socket.user._id.toString())
             console.log('socket id disconnected: ', socket.id)
         })
+        socket.emit('connected', {serverName: server_name})
         console.log('socket id on connection: ', socket.id)
         await redis.mapUserSocket(server_name, socket.user._id.toString(), socket.id)
     })
