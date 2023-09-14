@@ -5,7 +5,9 @@ import express from 'express'
 const router = express.Router()
 import feeds from "../data-layer/feeds.mjs"
 
-router.get('/post/feed', async (req, res) => {
+import authenticate from '../middlewares/authenticate.mjs'
+
+router.get('/post/feed', authenticate, async (req, res) => {
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }

@@ -5,28 +5,14 @@ Content-Type: application/json
 {"id": "64ff19f1ce1ae476dfa18abf", "password": "12345"}
 ###
 
-#login Александр Абрамов, Домодедово
-POST http://0.0.0.0:3000/login
+#Новый пост пользователя 2
+POST http://0.0.0.0:3000/dialog/64ff19f1ce1ae476dfa18ac1/send
+Authorization: Bearer 029cce1d-daa6-4602-a5c2-afc781360795
 Content-Type: application/json
 
-{"id": "64ff19f1ce1ae476dfa18ac0", "password": "12345"}
-###
-
-#login Илья Абрамов, Севастополь
-POST http://0.0.0.0:3000/login
-Content-Type: application/json
-
-{"id": "64ff19f1ce1ae476dfa18ac1", "password": "12345"}
-###
-
-
-# пост первого пользователя
-POST http://0.0.0.0:3000/post/create
-Authorization: Bearer a2961129-407a-481d-a188-3a76b9eeeb98
-Content-Type: application/json
-
-{"text": "Самый новый пост первого пользователя"}
+{
+  "text": "Новый пост пользователя 1"
+}
 
 ###
-
 

@@ -1,6 +1,7 @@
 import users from '../data-layer/users.mjs'
 
 const authenticate = async (req, res, next) => {
+    console.log('auth')
     if (!req.headers.authorization) {
         return next()
     }

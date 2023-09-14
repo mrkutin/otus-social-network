@@ -4,7 +4,9 @@ const router = express.Router()
 import posts from '../data-layer/posts.mjs'
 import redis from '../data-layer/redis.mjs'
 
-router.post('/post/create', async (req, res) => {
+import authenticate from '../middlewares/authenticate.mjs'
+
+router.post('/post/create', authenticate, async (req, res) => {
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }
@@ -22,7 +24,7 @@ router.post('/post/create', async (req, res) => {
         return res.status(500).send('Ошибка сервера')
     }
 })
-router.put('/post/update', async (req, res) => {
+router.put('/post/update', authenticate, async (req, res) => {
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }
@@ -39,7 +41,7 @@ router.put('/post/update', async (req, res) => {
         return res.status(500).send('Ошибка сервера')
     }
 })
-router.put('/post/delete/:id', async (req, res) => {
+router.put('/post/delete/:id', authenticate, async (req, res) => {
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }
@@ -56,7 +58,7 @@ router.put('/post/delete/:id', async (req, res) => {
         return res.status(500).send('Ошибка сервера')
     }
 })
-router.get('/post/:id', async (req, res) => {
+router.get('/post/:id', authenticate, async (req, res) => {
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }

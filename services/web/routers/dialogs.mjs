@@ -4,7 +4,10 @@ const router = express.Router()
 import dialogs from '../data-layer/dialogs.mjs'
 import users from '../data-layer/users.mjs'
 
-router.post('/dialog/:user_id/send', async (req, res) => {
+import authenticate from '../middlewares/authenticate.mjs'
+
+router.post('/dialog/:user_id/send', authenticate, async (req, res) => {
+    console.log('send')
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }
@@ -19,7 +22,8 @@ router.post('/dialog/:user_id/send', async (req, res) => {
         return res.status(500).send('Ошибка сервера')
     }
 })
-router.get('/dialog/:user_id/list', async (req, res) => {
+router.get('/dialog/:user_id/list', authenticate, async (req, res) => {
+    console.log('list')
     if (!req.user) {
         return res.status(401).send('Пользователь не аутентифицирован')
     }

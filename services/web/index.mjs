@@ -13,8 +13,6 @@ import friends from './routers/friends.mjs'
 import posts from './routers/posts.mjs'
 import dialogs from './routers/dialogs.mjs'
 
-import authenticate from './middlewares/authenticate.mjs'
-
 const app = express()
 
 const httpServer = createServer(app)
@@ -27,10 +25,10 @@ app.use(express.static(__dirname + '/public'))
 app.use(express.json())
 
 app.use(users)
-app.use(authenticate, friends)
-// todo app.use(authenticate, feeds)
-app.use(authenticate, posts)
-app.use(authenticate, dialogs)
+app.use(friends)
+// todo app.use(feeds)
+app.use(posts)
+app.use(dialogs)
 
 httpServer.listen(PORT, function () {
     console.log('Server listening at port %d', PORT);

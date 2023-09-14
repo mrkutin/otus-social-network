@@ -2,7 +2,9 @@ import express from 'express'
 const router = express.Router()
 import friends from "../data-layer/friends.mjs"
 
-router.put('/friend/set/:user_id', async (req, res) => {
+import authenticate from '../middlewares/authenticate.mjs'
+
+router.put('/friend/set/:user_id', authenticate, async (req, res) => {
     if (!req.params.user_id) {
         return res.status(400).send('Невалидные данные')
     }
@@ -20,7 +22,7 @@ router.put('/friend/set/:user_id', async (req, res) => {
     }
 })
 
-router.put('/friend/delete/:user_id', async (req, res) => {
+router.put('/friend/delete/:user_id', authenticate, async (req, res) => {
     if (!req.params.user_id) {
         return res.status(400).send('Невалидные данные')
     }
