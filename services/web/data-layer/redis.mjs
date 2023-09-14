@@ -1,6 +1,7 @@
 import Redis from 'ioredis'
+import fs from 'fs'
 
-const redis = new Redis.Cluster([{
+const redis = new Redis([{
     host: process.env.REDIS_HOST,
     port: 6379
 }])
@@ -11,6 +12,7 @@ try {
     console.log(`Group "${process.env.SERVER_NAME}" already exists in stream:post:created, skipping`)
 }
 
+redis.function( 'LOAD', 'REPLACE', fs.readFileSync('./redis.lua'))
 
 const userToSocket = user_id => {
     return redis.get(`user-socket:${user_id}`)
