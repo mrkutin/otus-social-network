@@ -1,7 +1,7 @@
 import express from 'express'
 
 const router = express.Router()
-import dialogs from '../data-layer/dialogs.mjs'
+import dialogs from '../data-layer/dialogs-redis.mjs'
 import users from '../data-layer/users.mjs'
 
 import authenticate from '../middlewares/authenticate.mjs'

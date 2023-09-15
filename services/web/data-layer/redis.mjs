@@ -1,23 +1,12 @@
 import Redis from 'ioredis'
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
 
-const redis = new Redis([{
-    host: process.env.REDIS_HOST,
-    port: 6379
-}])
+const redis = new Redis(6379, process.env.REDIS_HOST || 'localhost')
 
 try {
     await redis.xgroup('CREATE', 'stream:post:created', process.env.SERVER_NAME, '$', 'MKSTREAM')
 } catch (e) {
     console.log(`Group "${process.env.SERVER_NAME}" already exists in stream:post:created, skipping`)
 }
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-redis.function( 'LOAD', 'REPLACE', fs.readFileSync(__dirname + '/redis.lua'))
 
 const userToSocket = user_id => {
     return redis.get(`user-socket:${user_id}`)

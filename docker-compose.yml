@@ -10,64 +10,6 @@ services:
     volumes:
       - ./services/mongodb/cfg_data:/bitnami
 
-#  redis-node-0:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-0:/bitnami/redis/data
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#
-#  redis-node-1:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-1:/bitnami/redis/data
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#
-#  redis-node-2:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-2:/bitnami/redis/data
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#
-#  redis-node-3:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-3:/bitnami/redis/data
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#
-#  redis-node-4:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-4:/bitnami/redis/data
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#
-#  redis-node-5:
-#    image: docker.io/bitnami/redis-cluster:7.2
-#    volumes:
-#      - redis-cluster_data-5:/bitnami/redis/data
-#    depends_on:
-#      - redis-node-0
-#      - redis-node-1
-#      - redis-node-2
-#      - redis-node-3
-#      - redis-node-4
-#    environment:
-#      - 'ALLOW_EMPTY_PASSWORD=yes'
-#      - 'REDIS_CLUSTER_REPLICAS=1'
-#      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
-#      - 'REDIS_CLUSTER_CREATOR=yes'
-#    ports:
-#      - 6379:6379
-
   redis:
     image: redis/redis-stack
     restart: on-failure
@@ -76,6 +18,8 @@ services:
       - 8001:8001
     environment:
       REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
+    volumes:
+      - ./services/redis/:/data
 
   webserver-first:
     depends_on:
@@ -85,51 +29,9 @@ services:
       context: ./services/web/
     image: webserver
     restart: on-failure
-    expose:
-      - 3000
+    ports:
+      - 3000:3000
     environment:
       DB_HOST: mongodb
       REDIS_HOST: redis
       SERVER_NAME: webserver-first
-
-#  webserver-second:
-#    depends_on:
-#      - mongodb
-#      - redis-node-5
-#    build:
-#      context: ./services/web/
-#    image: webserver
-#    restart: on-failure
-#    expose:
-#      - 3000
-#    environment:
-#      DB_HOST: mongodb
-#      REDIS_HOST: redis-node-5
-#      SERVER_NAME: webserver-second
-
-#  haproxy:
-#    depends_on:
-#      - webserver-first
-#      - webserver-second
-#    image: haproxy:1.7-alpine
-#    volumes:
-#      - ./services/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-#    links:
-#      - webserver-first
-#      - webserver-second
-#    ports:
-#      - 3000:80
-
-#volumes:
-#  redis-cluster_data-0:
-#    driver: local
-#  redis-cluster_data-1:
-#    driver: local
-#  redis-cluster_data-2:
-#    driver: local
-#  redis-cluster_data-3:
-#    driver: local
-#  redis-cluster_data-4:
-#    driver: local
-#  redis-cluster_data-5:
-#    driver: local
