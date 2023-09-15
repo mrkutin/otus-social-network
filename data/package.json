@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "^6.0.0"
+    "ioredis": "^5.3.2",
+    "mongodb": "^6.0.0",
+    "uuid": "^9.0.1"
   }
 }
