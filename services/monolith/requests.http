@@ -1,0 +1,18 @@
+#login Роберт Абрамов, Воткинск
+POST http://0.0.0.0:3000/login
+Content-Type: application/json
+
+{"id": "64ff19f1ce1ae476dfa18abf", "password": "12345"}
+###
+
+#Новый пост пользователя 2
+POST http://0.0.0.0:3000/dialog/64ff19f1ce1ae476dfa18ac1/send
+Authorization: Bearer 029cce1d-daa6-4602-a5c2-afc781360795
+Content-Type: application/json
+
+{
+  "text": "Новый пост пользователя 1"
+}
+
+###
+
