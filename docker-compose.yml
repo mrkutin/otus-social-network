@@ -46,8 +46,8 @@ services:
     environment:
       REDIS_HOST: redis
       PORT: 3001
-      MONOLITH_HOST: monolith
-      MONOLITH_PORT: 3000
+      MONOLITH_HOST: nginx
+      MONOLITH_PORT: 80
 
   nginx:
     image: nginx:latest
