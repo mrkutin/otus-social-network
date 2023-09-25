@@ -10,12 +10,21 @@ import {v4 as uuid} from 'uuid'
 const connectionString = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}`
 const client = new MongoClient(connectionString)
 
-try {
-    await client.connect()
-    console.log('Users connected to MongoDB cluster')
-} catch (err) {
-    console.error('error connecting: ' + err.stack)
+const connect = async () => {
+    try {
+        await client.connect()
+        console.log('Users connected to MongoDB cluster')
+    } catch (err) {
+        console.error('Users connection error, reconnecting in 1000 ms')
+        await new Promise(resolve => {
+            setTimeout(() => {
+                return resolve()
+            }, 1000)
+        })
+        return connect()
+    }
 }
+await connect()
 
 const socialDb = client.db('social')
 const dbUsers = socialDb.collection('users')
