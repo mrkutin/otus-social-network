@@ -8,8 +8,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: topsecret
       LANG: C.UTF-8
-    ports:
-      - 3306:3306
+#    ports:
+#      - 3306:3306
     volumes:
       - ./gtid-replication/master.cnf:/etc/mysql/conf.d/master.cnf
       - ./gtid-replication/master-init.sql:/docker-entrypoint-initdb.d/1-init.sql
@@ -23,11 +23,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: topsecret
       LANG: C.UTF-8
-    ports:
-      - 3307:3306
+#    ports:
+#      - 3307:3306
     volumes:
       - ./gtid-replication/slave-one.cnf:/etc/mysql/conf.d/slave-one.cnf
-      - ./gtid-replication/slave-init.sql:/docker-entrypoint-initdb.d/1-init.sql
+#      - ./gtid-replication/slave-init.sql:/docker-entrypoint-initdb.d/1-init.sql
 
   slave-two:
     depends_on:
@@ -37,19 +37,48 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: topsecret
       LANG: C.UTF-8
-    ports:
-      - 3308:3306
+#    ports:
+#      - 3308:3306
     volumes:
       - ./gtid-replication/slave-two.cnf:/etc/mysql/conf.d/slave-two.cnf
-      - ./gtid-replication/slave-init.sql:/docker-entrypoint-initdb.d/1-init.sql
+#      - ./gtid-replication/slave-init.sql:/docker-entrypoint-initdb.d/1-init.sql
+
+  slave-three:
+    depends_on:
+      - master
+    image: mysql:8.0.34-debian
+    restart: no
+    environment:
+      MYSQL_ROOT_PASSWORD: topsecret
+      LANG: C.UTF-8
+#    ports:
+#      - 3309:3306
+    volumes:
+      - ./gtid-replication/slave-three.cnf:/etc/mysql/conf.d/slave-three.cnf
+#      - ./gtid-replication/slave-init.sql:/docker-entrypoint-initdb.d/1-init.sql
+
+  haproxy:
+    depends_on:
+      - slave-one
+      - slave-two
+      - slave-three
+    image: haproxy:1.7-alpine
+    volumes:
+      - ./services/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    links:
+      - slave-one
+      - slave-two
+      - slave-three
+    ports:
+      - 9999:9999
 
   webserver:
     depends_on:
-      - slave-one
+      - haproxy
     build:
       context: .
     image: webserver
     ports:
       - 3000:3000
     environment:
-      MYSQL_HOST: slave-one
+      MYSQL_HOST: haproxy
