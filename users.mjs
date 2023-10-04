@@ -3,6 +3,7 @@ import {v4 as uuid} from 'uuid'
 
 const config = {
     host: process.env.MYSQL_HOST || 'localhost',
+    // port: 3306,
     database: 'social',
     user: 'root',
     password: 'topsecret'
