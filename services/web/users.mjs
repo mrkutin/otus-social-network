@@ -56,6 +56,7 @@ const get = async id => {
 }
 
 const search = async (first_name, second_name) => {
+    console.log('search request has been made ' + new Date())
     const like_clauses = []
     if(first_name) {
         like_clauses.push(`first_name LIKE '${first_name}%'`)

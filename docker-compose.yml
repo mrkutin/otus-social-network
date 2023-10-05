@@ -64,13 +64,31 @@ services:
       - 9999:9999
       - 3306:3306
 
-  webserver:
+  webserver-one:
     depends_on:
       - haproxy
     build:
-      context: .
+      context: ./services/web
     image: webserver
-    ports:
-      - 3000:3000
     environment:
       MYSQL_HOST: haproxy
+
+  webserver-two:
+    depends_on:
+      - haproxy
+    build:
+      context: ./services/web
+    image: webserver
+    environment:
+      MYSQL_HOST: haproxy
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_container
+    links:
+      - webserver-one
+      - webserver-two
+    ports:
+      - 8080:80
+    volumes:
+      - ./services/nginx/nginx.conf:/etc/nginx/nginx.conf
