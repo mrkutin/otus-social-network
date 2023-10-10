@@ -13,18 +13,18 @@ subscriber.on('message', async (channel, message) => {
         case 'increase:message:count':
             try {
                 await redis.incr(messageObj.user_id)
+                await redis.publish('message:count:increased', JSON.stringify(messageObj))
             } catch (e) {
                 await redis.publish('message:count:not:increased', JSON.stringify(messageObj))
             }
-            await redis.publish('message:count:increased', JSON.stringify(messageObj))
             break
         case 'decrease:message:count':
             try {
                 await redis.decr(messageObj.user_id)
+                await redis.publish('message:count:decreased', JSON.stringify(messageObj))
             } catch (e) {
                 await redis.publish('message:count:not:decreased', JSON.stringify(messageObj))
             }
-            await redis.publish('message:count:decreased', JSON.stringify(messageObj))
             break
     }
 })
