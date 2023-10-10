@@ -18,6 +18,8 @@ try {
 const socialDb = client.db('social')
 const dbMessages = socialDb.collection('messages')
 
+import events from '../data-layer/events.mjs'
+
 const create = async (city, from_user_id, to_user_id, text) => {
     const res = await dbMessages.insertOne({
         city: city,
@@ -30,11 +32,10 @@ const create = async (city, from_user_id, to_user_id, text) => {
     return res.insertedId.toString()
 }
 
-const search = async (city, from_user_id, to_user_id) => {
+const search = async (from_user_id, to_user_id) => {
     const res = await dbMessages.aggregate([
         {
             $match: {
-                city: city,
                 from_user_id: new ObjectId(from_user_id),
                 to_user_id: new ObjectId(to_user_id)
             }
@@ -43,4 +44,59 @@ const search = async (city, from_user_id, to_user_id) => {
     return res || null
 }
 
-export default {create, search}
+const countUnread = async () => {
+    const res = await dbMessages.aggregate([
+            {
+                $match: {
+                    read: {$ne: true}
+                }
+            },
+            {
+                $group: {
+                    _id: {user_id: '$to_user_id'},
+                    count: {$count: {}}
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    user_id: '$_id.user_id',
+                    count: '$count'
+                }
+            }
+        ]).toArray()
+    return res || null
+}
+
+const markAsRead = message_id => {
+    return dbMessages.updateOne(
+        {_id: new ObjectId(message_id)},
+        {
+            $set: {
+                read: true,
+                updated_at: new Date()
+            }
+        })
+}
+
+const markAsUnread = message_id => {
+    return dbMessages.updateOne(
+        {_id: new ObjectId(message_id)},
+        {
+            $set: {
+                read: false,
+                updated_at: new Date()
+            }
+        })
+}
+
+const warmUpCache = async () => {
+    const messageCounts = await countUnread()
+    for (const record of messageCounts){
+        await events.updateCount(record.user_id, record.count)
+    }
+}
+
+await warmUpCache()
+
+export default {create, search, markAsRead, markAsUnread, countUnread}

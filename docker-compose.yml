@@ -1,84 +1,28 @@
 version: '3'
 
 services:
-  mongodb-cfg:
-    image: docker.io/bitnami/mongodb-sharded:6.0
+  mongodb:
+    image: bitnami/mongodb:latest
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongodb-cfg
-      - MONGODB_SHARDING_MODE=configsvr
-      - MONGODB_ROOT_PASSWORD=topsecret
-      - MONGODB_REPLICA_SET_MODE=primary
-      - MONGODB_REPLICA_SET_KEY=replicasetkey123
-      - MONGODB_REPLICA_SET_NAME=cfgreplicaset
-    volumes:
-      - ./sharded-cluster-data/cfg_data:/bitnami
-
-  mongodb-sharded:
-    image: docker.io/bitnami/mongodb-sharded:6.0
-    environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongodb-sharded
-      - MONGODB_SHARDING_MODE=mongos
-      - MONGODB_CFG_PRIMARY_HOST=mongodb-cfg
-      - MONGODB_CFG_REPLICA_SET_NAME=cfgreplicaset
-      - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_ROOT_PASSWORD=topsecret
     ports:
-      - "27017:27017"
+      - 27017:27017
     volumes:
-      - ./sharded-cluster-data/sharded_data:/bitnami
+      - ./services/mongodb/cfg_data:/bitnami
 
-  mongodb-shard0:
-    image: docker.io/bitnami/mongodb-sharded:6.0
+  redis:
+    image: redis/redis-stack
+    restart: on-failure
+    ports:
+      - 6379:6379
+      - 8001:8001
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard0
-      - MONGODB_SHARDING_MODE=shardsvr
-      - MONGODB_MONGOS_HOST=mongodb-sharded
-      - MONGODB_ROOT_PASSWORD=topsecret
-      - MONGODB_REPLICA_SET_MODE=primary
-      - MONGODB_REPLICA_SET_KEY=replicasetkey123
-      - MONGODB_REPLICA_SET_NAME=shard0
-    volumes:
-      - ./sharded-cluster-data/shard0_data:/bitnami
-
-  mongodb-shard1:
-    image: docker.io/bitnami/mongodb-sharded:6.0
-    environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard1
-      - MONGODB_SHARDING_MODE=shardsvr
-      - MONGODB_MONGOS_HOST=mongodb-sharded
-      - MONGODB_ROOT_PASSWORD=topsecret
-      - MONGODB_REPLICA_SET_MODE=primary
-      - MONGODB_REPLICA_SET_KEY=replicasetkey123
-      - MONGODB_REPLICA_SET_NAME=shard1
-    volumes:
-      - ./sharded-cluster-data/shard1_data:/bitnami
-
-#  mongodb-shard2:
-#    image: docker.io/bitnami/mongodb-sharded:6.0
-#    environment:
-#      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard2
-#      - MONGODB_SHARDING_MODE=shardsvr
-#      - MONGODB_MONGOS_HOST=mongodb-sharded
-#      - MONGODB_ROOT_PASSWORD=topsecret
-#      - MONGODB_REPLICA_SET_MODE=primary
-#      - MONGODB_REPLICA_SET_KEY=replicasetkey123
-#      - MONGODB_REPLICA_SET_NAME=shard2
-#    volumes:
-#      - ./sharded-cluster-data/shard2_data:/bitnami
-
-#  redis:
-#    image: redis/redis-stack
-#    restart: on-failure
-#    ports:
-#      - 6379:6379
-#      - 8001:8001
-#    environment:
-#      REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
+      REDIS_ARGS: --save 60 1 --notify-keyspace-events KEA
 
   webserver:
     depends_on:
-      - mongodb-sharded
-#      - redis
+      - mongodb
+      - redis
     build:
       context: ./services/web/
     image: webserver
@@ -86,5 +30,5 @@ services:
     ports:
       - 3000:3000
     environment:
-      DB_HOST: mongodb-sharded
-#      REDIS_HOST: redis
+      DB_HOST: mongodb
+      REDIS_HOST: redis
