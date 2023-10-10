@@ -79,6 +79,13 @@ const markAsRead = message_id => {
         })
 }
 
+const checkIfRead = async message_id => {
+    const message = await dbMessages.findOne(
+        {_id: new ObjectId(message_id)},
+    )
+    return message.read === true
+}
+
 const markAsUnread = message_id => {
     return dbMessages.updateOne(
         {_id: new ObjectId(message_id)},
@@ -99,4 +106,4 @@ const warmUpCache = async () => {
 
 await warmUpCache()
 
-export default {create, search, markAsRead, markAsUnread, countUnread}
+export default {create, search, markAsRead, markAsUnread, countUnread, checkIfRead}

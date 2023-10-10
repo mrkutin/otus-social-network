@@ -32,3 +32,15 @@ services:
     environment:
       DB_HOST: mongodb
       REDIS_HOST: redis
+
+  count:
+    depends_on:
+      - redis
+    build:
+      context: ./services/count/
+    image: count
+    restart: on-failure
+    ports:
+      - 3001:3001
+    environment:
+      REDIS_HOST: redis

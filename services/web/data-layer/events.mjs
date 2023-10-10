@@ -21,11 +21,17 @@ subscriber.on('message', async (channel, message) => {
 })
 
 const markAsRead = async (user_id, message_id) => {
-    await redis.publish('decrease:message:count', JSON.stringify({user_id, message_id}))
+    const read = await dialogs.checkIfRead(message_id)
+    if (!read) {
+        await redis.publish('decrease:message:count', JSON.stringify({user_id, message_id}))
+    }
 }
 
 const markAsUnread = async (user_id, message_id) => {
-    await redis.publish('increase:message:count', JSON.stringify({user_id, message_id}))
+    const read = await dialogs.checkIfRead(message_id)
+    if (read) {
+        await redis.publish('increase:message:count', JSON.stringify({user_id, message_id}))
+    }
 }
 
 const updateCount = (user_id, count) => {
